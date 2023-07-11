@@ -6,16 +6,23 @@ import boardgame.Position;
 import chess.pieces.King;
 import chess.pieces.Rook;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ChessMatch {
 
+    private Board board;
     private int turn;
     private Color currentPlayer;
-    private Board board;
+    private List<Piece> piecesOnTheBoard;
+    private List<Piece> capturedPieces;
 
     public ChessMatch() {
         this.board = new Board(8, 8);
         this.turn = 1;
         this.currentPlayer = Color.WHITE;
+        this.piecesOnTheBoard = new ArrayList<>();
+        this.capturedPieces = new ArrayList<>();
         this.initialSetup();
     }
 
@@ -59,8 +66,12 @@ public class ChessMatch {
 
     private Piece makeMove(Position source, Position target) {
         Piece piece = this.board.removePiece(source);
-        Piece capturedPiece= this.board.removePiece(target);
+        Piece capturedPiece = this.board.removePiece(target);
         this.board.placePiece(piece, target);
+        if (capturedPiece != null) {
+            this.piecesOnTheBoard.remove(capturedPiece);
+            this.capturedPieces.add(capturedPiece);
+        }
         return capturedPiece;
     }
 
@@ -90,6 +101,7 @@ public class ChessMatch {
 
     private void placeNewPiece(char column, int row, ChessPiece piece) {
         this.board.placePiece(piece, new ChessPosition(column, row).toPosition());
+        this.piecesOnTheBoard.add(piece);
     }
 
     public void initialSetup() {
