@@ -18,6 +18,7 @@ public class ChessMatch {
     private List<Piece> piecesOnTheBoard;
     private List<Piece> capturedPieces;
     private boolean check;
+    private boolean checkmate;
 
     public ChessMatch() {
         this.board = new Board(8, 8);
@@ -35,6 +36,10 @@ public class ChessMatch {
 
     public boolean isCheck() {
         return check;
+    }
+
+    public boolean isCheckmate() {
+        return checkmate;
     }
 
     public Color getCurrentPlayer() {
@@ -74,7 +79,12 @@ public class ChessMatch {
 
         this.check = (this.testCheck(this.opponent(this.currentPlayer)));
 
-        this.nextTurn();
+        if (this.testCheckMate(this.opponent(this.currentPlayer))) {
+            this.checkmate = true;
+        } else {
+            this.nextTurn();
+        }
+
         return (ChessPiece) capturedPiece;
     }
 
@@ -148,6 +158,31 @@ public class ChessMatch {
             }
         }
         return false;
+    }
+
+    private boolean testCheckMate(Color color) {
+        if (!this.testCheck(color)) {
+            return false;
+        }
+        List<Piece> list = this.piecesOnTheBoard.stream().filter(x -> ((ChessPiece) x).getColor() == color).toList();
+        for (Piece p : list) {
+            boolean mat[][] = p.possibleMoves();
+            for (int i = 0; i < this.board.getRows(); i++) {
+                for (int j = 0; j < this.board.getColumns(); j++) {
+                    if (mat[i][j]) {
+                        Position source = ((ChessPiece)p).getChessPosition().toPosition();
+                        Position target = new Position(i, j);
+                        Piece capturedPiece = this.makeMove(source, target);
+                        boolean testCheck = this.testCheck(color);
+                        this.undoMove(source, target, capturedPiece);
+                        if (!testCheck) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     private void placeNewPiece(char column, int row, ChessPiece piece) {
